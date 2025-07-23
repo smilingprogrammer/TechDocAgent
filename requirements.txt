@@ -1,0 +1,2 @@
+# Requirements for TechDocAgent
+# Add dependencies as needed during development 
