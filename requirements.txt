@@ -1,2 +1,3 @@
 # Requirements for TechDocAgent
-# Add dependencies as needed during development 
+# Add dependencies as needed during development
+pathspec 
