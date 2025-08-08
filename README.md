@@ -6,7 +6,7 @@ An agent that generates technical documentation from code.
 
 ## Overview
 
-TechDocAgent is an innovative project designed to automate the creation of technical documentation directly from your codebase. By leveraging advanced language models and code analysis techniques, it aims to streamline the documentation process, ensuring your project's documentation is always up-to-date and comprehensive.
+TechDocAgent is a project designed to automate the creation of technical documentation directly from your codebase. By leveraging advanced language models and code analysis techniques, it aims to streamline the documentation process, ensuring your project's documentation is always up-to-date and comprehensive.
 
 ## Core Capabilities & Technologies
 
@@ -21,16 +21,15 @@ To get TechDocAgent up and running, follow these steps:
 
 1.  **Clone the repository:**
     ```bash
-    git clone <repository_url_here>
+    git clone https://github.com/smilingprogrammer/TechDocAgent.git
     cd TechDocAgent
-    ```python
-    *(Replace `<repository_url_here>` with the actual URL of the repository)*
+    
 
 2.  **Install dependencies:**
     Navigate to the project's root directory and install all required Python packages using `pip`:
     ```bash
     pip install -r requirements.txt
-    ```python
+    
 
 ## Configuration
 
@@ -41,7 +40,7 @@ TechDocAgent relies on a Large Language Model (LLM) for its documentation genera
     Example (for bash/zsh):
     ```bash
     export GEMINI_API_KEY="your_gemini_api_key_here"
-    ```python
+    
     It's recommended to add this to your shell's profile file (e.g., `.bashrc`, `.zshrc`) or use a `.env` file with a package like `python-dotenv` for local development.
 
 ## Usage
