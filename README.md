@@ -30,7 +30,7 @@ The project offers **two implementations**:
 
 | Feature | Description |
 |---------|-------------|
-| **🔍 Vector Search** | FAISS-powered semantic code search using embeddings |
+| **Vector Search** | FAISS-powered semantic code search using embeddings |
 | **Language Detection** | Automatic detection of 15+ programming languages |
 | **Change Detection** | Git and hash-based change tracking with dependency analysis |
 | **Incremental Updates** | Smart regeneration of only affected documentation |
@@ -181,7 +181,7 @@ export TECHDOC_PROJECT_ROOT="."
 
 ---
 
-## 💡 Examples
+## Examples
 
 ### Example 1: Generate Multiple Documentation Types
 
@@ -196,7 +196,7 @@ with TechDocAgent() as agent:
     doc_types = ['README', 'API', 'ONBOARDING', 'ARCHITECTURE']
     for doc_type in doc_types:
         doc = agent.generate_documentation(doc_type)
-        print(f"✅ {doc_type} generated ({len(doc)} chars)")
+        print(f"{doc_type} generated ({len(doc)} chars)")
 ```
 
 ### Example 2: Incremental Updates
@@ -213,7 +213,7 @@ with TechDocAgent() as agent:
 
     # Smart update - only regenerates if changed
     updated = agent.update_documentation('README')
-    print("✅ Documentation updated!")
+    print("Documentation updated!")
 ```
 
 ### Example 3: Semantic Code Search
@@ -233,14 +233,14 @@ with TechDocAgent() as agent:
 
     for query in queries:
         results = agent.search_code(query, top_k=3)
-        print(f"\n🔍 Query: {query}")
+        print(f"\n Query: {query}")
         for chunk, score in results:
             print(f"  - {chunk['name']} (similarity: {score:.2f})")
 ```
 
 You can find more examples [here](https://github.com/smilingprogrammer/TechDocAgent/blob/main/EXAMPLES.md)
 
-## 🗺️ Roadmap
+## Roadmap
 
 ### Current Status
 
