@@ -1,71 +1,300 @@
-![Status](https://img.shields.io/badge/status-active-brightgreen)
-
 # TechDocAgent
 
-An agent that generates technical documentation from code.
+<div align="center">
 
-## Overview
+![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)
+![Status](https://img.shields.io/badge/status-active-brightgreen)
+![License](https://img.shields.io/badge/license-MIT-blue)
+![Version](https://img.shields.io/badge/version-2.0.0-orange)
 
-TechDocAgent is a project designed to automate the creation of technical documentation directly from your codebase. By leveraging advanced language models and code analysis techniques, it aims to streamline the documentation process, ensuring your project's documentation is always up-to-date and comprehensive.
+**AI-powered technical documentation generation for codebases**
 
-## Core Capabilities & Technologies
+[Features](#-features) • [Installation](#-installation) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Examples](#-examples)
 
-TechDocAgent leverages the following key technologies and capabilities:
+</div>
 
-*   **Python:** The entire agent's logic, analysis components, and orchestration are built using Python.
-*   **XML:** Utilized for specific aspects of documentation generation or internal data representation, ensuring structured and parseable output where required.
+---
 
-## Installation
+## 📖 Overview
 
-To get TechDocAgent up and running, follow these steps:
+TechDocAgent is an intelligent documentation generation system that automatically creates comprehensive technical documentation from your codebase. Powered by Google's Gemini AI and advanced code analysis techniques, it transforms source code into human-readable documentation with minimal effort.
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/smilingprogrammer/TechDocAgent.git
-    cd TechDocAgent
-    
+The project offers **two implementations**:
 
-2.  **Install dependencies:**
-    Navigate to the project's root directory and install all required Python packages using `pip`:
-    ```bash
-    pip install -r requirements.txt
-    
+- **Basic (`techdocagent`)**: Lightweight, straightforward documentation generation for simple projects
+- **Advanced (`techdocagent_advanced`)**: Enterprise-grade system with memory, semantic search, incremental updates, and feedback learning
 
-## Configuration
+---
 
-TechDocAgent relies on a Large Language Model (LLM) for its documentation generation capabilities. You will need to provide an API key for the chosen LLM, which is expected to be Google Gemini in this configuration.
+## ✨ Features
 
-*   **`GEMINI_API_KEY`**: Set this environment variable to your actual Google Gemini API key.
+| Feature | Description |
+|---------|-------------|
+| **🔍 Vector Search** | FAISS-powered semantic code search using embeddings |
+| **Language Detection** | Automatic detection of 15+ programming languages |
+| **Change Detection** | Git and hash-based change tracking with dependency analysis |
+| **Incremental Updates** | Smart regeneration of only affected documentation |
+| **Feedback Loop** | Rating system, corrections, and continuous improvement |
+| **Multi-Format** | 9+ documentation types (README, API, Onboarding, etc.) |
+| **AST Analysis** | Advanced Abstract Syntax Tree parsing for deep code understanding |
 
-    Example (for bash/zsh):
-    ```bash
-    export GEMINI_API_KEY="your_gemini_api_key_here"
-    
-    It's recommended to add this to your shell's profile file (e.g., `.bashrc`, `.zshrc`) or use a `.env` file with a package like `python-dotenv` for local development.
+---
 
-## Usage
+## 🚀 Installation
 
-Currently, the primary way to understand and interact with TechDocAgent's functionality is by exploring its comprehensive test suite. These tests serve as runnable examples demonstrating how different components of the agent work together.
+### Prerequisites
 
-*   **See `test_analysis.py` for usage examples:** This file provides a good starting point to observe how code analysis, LLM interaction, and documentation generation steps are orchestrated. You can run individual tests or examine their structure to understand the agent's workflow.
+- Python 3.8 or higher
+- Google Gemini API key ([Get one here](https://makersuite.google.com/app/apikey))
 
-    To run the tests:
-    ```bash
-    pytest
-    ```python
-    or for a specific test file:
-    ```bash
-    pytest test_analysis.py
-    ```python
+### Basic Installation
 
-## Test Suite Structure
+```bash
+# Clone the repository
+git clone https://github.com/smilingprogrammer/TechDocAgent.git
+cd TechDocAgent
 
-The project's current development and testing efforts are organized around the following test files, which collectively demonstrate the agent's internal workings and capabilities:
+# Install dependencies
+pip install -r requirements.txt
 
-*   `test_analysis.py`: Contains tests related to the code analysis components, including parsing and understanding source code.
-*   `test_chunking.py`: Focuses on testing the logic for breaking down code or documentation into manageable chunks for LLM processing.
-*   `test_ingestion.py`: Tests the mechanisms for ingesting various forms of input data into the agent.
-*   `test_llm.py`: Dedicated to testing interactions with the Large Language Model, ensuring correct prompting and response handling.
-*   `test_llm_json.py`: Specifically tests scenarios where LLM interactions involve JSON-formatted inputs or outputs.
-*   `test_pipeline.py`: Provides end-to-end tests for the entire documentation generation pipeline, from code input to final output.
-*   `test_prompt_fill.py`: Tests the templating and filling mechanisms for constructing prompts sent to the LLM.
+# Set your API key
+export GEMINI_API_KEY="your-api-key-here"
+```
+
+### Development Installation
+
+```bash
+# Install with development dependencies
+pip install -e ".[dev]"
+
+# Install with CLI tools
+pip install -e ".[cli]"
+
+# Install everything
+pip install -e ".[dev,cli]"
+```
+
+---
+
+## ⚡ Quick Start
+
+### Basic Usage
+
+```python
+from techdocagent.ingestion import ingest_codebase
+from techdocagent.analysis import analyze_file
+from techdocagent.llm import generate_documentation
+
+# Ingest your codebase
+files = ingest_codebase('./your-project-path')
+
+# Analyze files
+metadata = [analyze_file(f) for f in files]
+
+# Generate documentation
+docs = generate_documentation(files, metadata)
+print(docs)
+```
+
+### Advanced Usage
+
+```python
+from techdocagent_advanced import TechDocAgent
+
+# Use context manager for automatic cleanup
+with TechDocAgent() as agent:
+    # Analyze codebase and build embeddings
+    summary = agent.analyze_codebase()
+    print(f"Analyzed {summary['total_files']} files")
+
+    # Generate README
+    readme = agent.generate_documentation('README')
+
+    # Search code semantically
+    results = agent.search_code("authentication logic")
+    for chunk, score in results[:3]:
+        print(f"  - {chunk['name']}: {score:.2f}")
+
+    # Collect feedback for continuous improvement
+    agent.collect_feedback(doc_id=1, rating=5, comment="Excellent!")
+```
+
+### Command Line (Advanced)
+
+```bash
+# Generate documentation
+techdoc-advanced generate --type README --output docs/
+
+# Update documentation after code changes
+techdoc-advanced update --type README
+
+# Search codebase
+techdoc-advanced search "error handling"
+
+# View statistics
+techdoc-advanced stats
+```
+
+---
+
+## 📚 Documentation
+
+### Documentation Types Supported
+
+| Type | Description | Version |
+|------|-------------|---------|
+| **README** | Comprehensive project documentation | Both |
+| **API** | API reference with endpoints and examples | Advanced |
+| **ONBOARDING** | Developer onboarding and setup guides | Advanced |
+| **CHANGELOG** | Automated changelog from git history | Advanced |
+| **ARCHITECTURE** | System architecture and design docs | Advanced |
+| **MODULE** | Per-module/file documentation | Advanced |
+| **FUNCTION** | Function-level detailed documentation | Advanced |
+| **TEST** | Test suite documentation | Advanced |
+| **DEPLOYMENT** | Deployment and operations guides | Advanced |
+
+### Configuration
+
+Create a `.techdocagent.json` file in your project root:
+
+```json
+{
+  "gemini_api_key": "your-api-key-here",
+  "project_root": ".",
+  "output_dir": "./docs",
+  "features": {
+    "embeddings": true,
+    "change_detection": true,
+    "feedback_loop": true,
+    "ast_analysis": true
+  },
+  "temperature": 0.7,
+  "max_tokens": 8000
+}
+```
+
+Or use environment variables:
+
+```bash
+export GEMINI_API_KEY="your-api-key"
+export TECHDOC_OUTPUT_DIR="./docs"
+export TECHDOC_PROJECT_ROOT="."
+```
+
+---
+
+## 💡 Examples
+
+### Example 1: Generate Multiple Documentation Types
+
+```python
+from techdocagent_advanced import TechDocAgent
+
+with TechDocAgent() as agent:
+    # Analyze once
+    agent.analyze_codebase()
+
+    # Generate multiple doc types
+    doc_types = ['README', 'API', 'ONBOARDING', 'ARCHITECTURE']
+    for doc_type in doc_types:
+        doc = agent.generate_documentation(doc_type)
+        print(f"✅ {doc_type} generated ({len(doc)} chars)")
+```
+
+### Example 2: Incremental Updates
+
+```python
+from techdocagent_advanced import TechDocAgent
+
+with TechDocAgent() as agent:
+    # Initial documentation
+    agent.analyze_codebase()
+    agent.generate_documentation('README')
+
+    # ... make code changes ...
+
+    # Smart update - only regenerates if changed
+    updated = agent.update_documentation('README')
+    print("✅ Documentation updated!")
+```
+
+### Example 3: Semantic Code Search
+
+```python
+from techdocagent_advanced import TechDocAgent
+
+with TechDocAgent() as agent:
+    agent.analyze_codebase()
+
+    # Natural language search
+    queries = [
+        "database connection logic",
+        "error handling middleware",
+        "user authentication"
+    ]
+
+    for query in queries:
+        results = agent.search_code(query, top_k=3)
+        print(f"\n🔍 Query: {query}")
+        for chunk, score in results:
+            print(f"  - {chunk['name']} (similarity: {score:.2f})")
+```
+
+### Example 4: Feedback Collection
+
+```python
+from techdocagent_advanced import TechDocAgent
+
+with TechDocAgent() as agent:
+    agent.analyze_codebase()
+    agent.generate_documentation('README')
+
+    # Collect user feedback
+    agent.collect_feedback(
+        doc_id=1,
+        rating=4,
+        comment="Good docs, but needs more examples"
+    )
+
+    # Submit corrections
+    agent.collect_feedback(
+        doc_id=1,
+        correction="The installation section should mention Python 3.8+"
+    )
+
+    # View feedback report
+    report = agent.get_feedback_report()
+    print(report)
+```
+
+You can find more examples [here]()
+
+## 🗺️ Roadmap
+
+### Current Status
+
+- ✅ Basic documentation generation
+- ✅ Advanced memory system
+- ✅ Vector embeddings and search
+- ✅ Change detection
+- ✅ Feedback loop
+- ✅ Multi-format documentation
+
+### Future Plans
+
+- 🔜 CLI interface with rich output
+- 🔜 Web UI for interactive documentation
+- 🔜 GitHub Actions integration
+- 🔜 Support for more output formats (HTML, PDF)
+- 🔜 Plugin system for custom doc types
+- 🔜 Multi-language documentation (i18n)
+- 🔜 Custom LLM backend support (OpenAI, Claude, etc.)
+
+---
+
+
+<div align="center">
+
+⭐ Star us it GitHub — it motivates me a lot!
+
+</div>
