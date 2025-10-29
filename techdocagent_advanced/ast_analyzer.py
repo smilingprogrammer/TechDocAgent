@@ -1,15 +1,3 @@
-"""
-ast_analyzer.py
-Advanced AST-based code analysis using Tree-sitter for TechDocAgent Advanced.
-
-Provides:
-- Multi-language AST parsing with Tree-sitter
-- Deep code structure extraction
-- Symbol extraction (classes, functions, variables)
-- Relationship detection (inheritance, imports, calls)
-- Enhanced chunking with semantic boundaries
-"""
-
 import os
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Set, Tuple
@@ -49,13 +37,10 @@ class ASTAnalyzer:
 
     def _load_languages(self):
         """Load tree-sitter language parsers."""
-        # This would load pre-compiled tree-sitter language binaries
-        # For now, it's a placeholder
         supported_languages = ['python', 'javascript', 'typescript', 'java', 'cpp', 'go', 'rust']
 
         for lang in supported_languages:
             try:
-                # In a real implementation, you would load the compiled language library
                 # language = Language(self.languages_path, lang)
                 # parser = Parser()
                 # parser.set_language(language)
@@ -78,7 +63,6 @@ class ASTAnalyzer:
         """
         lang_lower = language.lower()
 
-        # Use tree-sitter if available, otherwise fallback
         if TREE_SITTER_AVAILABLE and lang_lower in self.parsers:
             return self._analyze_with_treesitter(file_path, content, lang_lower)
         else:
@@ -96,18 +80,15 @@ class ASTAnalyzer:
         Returns:
             Analysis results
         """
-        # Placeholder for tree-sitter implementation
-        # In a full implementation, this would use tree-sitter queries
+        
         parser = self.parsers.get(language)
 
         if not parser:
             return self._analyze_with_fallback(file_path, content, language)
 
-        # Parse the code
         tree = parser.parse(bytes(content, 'utf-8'))
         root_node = tree.root_node
 
-        # Extract information from AST
         result = {
             'file_path': file_path,
             'language': language,
@@ -117,9 +98,6 @@ class ASTAnalyzer:
             'variables': [],
             'relationships': []
         }
-
-        # This would include AST traversal logic
-        # For different node types in different languages
 
         return result
 
@@ -179,7 +157,6 @@ class ASTAnalyzer:
 
         # Extract imports
         for i, line in enumerate(lines, 1):
-            # from X import Y
             match = re.match(r'^\s*from\s+(\S+)\s+import\s+(.+)$', line)
             if match:
                 module, names = match.groups()
@@ -192,7 +169,6 @@ class ASTAnalyzer:
                     })
                 continue
 
-            # import X
             match = re.match(r'^\s*import\s+(.+)$', line)
             if match:
                 modules = match.group(1)
@@ -203,7 +179,6 @@ class ASTAnalyzer:
                         'line': i
                     })
 
-        # Extract classes
         class_pattern = re.compile(r'^(\s*)class\s+(\w+)(\(([^)]+)\))?:', re.MULTILINE)
         for match in class_pattern.finditer(content):
             indent, name, _, parents = match.groups()
@@ -230,7 +205,6 @@ class ASTAnalyzer:
 
             result['classes'].append(class_info)
 
-        # Extract functions and methods
         func_pattern = re.compile(r'^(\s*)def\s+(\w+)\s*\(([^)]*)\)', re.MULTILINE)
         for match in func_pattern.finditer(content):
             indent, name, params = match.groups()
@@ -245,10 +219,7 @@ class ASTAnalyzer:
                              for p in params.split(',') if p.strip()]
             }
 
-            # Determine if it's a method or function
             if indent.strip() or len(indent) > 0:
-                # It's likely a method
-                # Find parent class
                 for cls in result['classes']:
                     if cls['line'] < line_num and len(indent) > cls['indent']:
                         cls['methods'].append(func_info)
@@ -257,7 +228,6 @@ class ASTAnalyzer:
             else:
                 result['functions'].append(func_info)
 
-        # Extract module-level variables
         var_pattern = re.compile(r'^([A-Z_][A-Z0-9_]*)\s*=', re.MULTILINE)
         for match in var_pattern.finditer(content):
             name = match.group(1)
@@ -282,7 +252,6 @@ class ASTAnalyzer:
             'relationships': []
         }
 
-        # Extract imports
         import_pattern = re.compile(r'^\s*(?:import|const|let|var)\s+(?:{([^}]+)}|\w+)\s+(?:=\s+require\([\'"]([^\'"]+)[\'"]\)|from\s+[\'"]([^\'"]+)[\'"])', re.MULTILINE)
         for match in import_pattern.finditer(content):
             line_num = content[:match.start()].count('\n') + 1
@@ -291,7 +260,6 @@ class ASTAnalyzer:
                 'line': line_num
             })
 
-        # Extract classes
         class_pattern = re.compile(r'^\s*class\s+(\w+)(?:\s+extends\s+(\w+))?', re.MULTILINE)
         for match in class_pattern.finditer(content):
             name, parent = match.groups()
@@ -315,7 +283,6 @@ class ASTAnalyzer:
 
             result['classes'].append(class_info)
 
-        # Extract functions
         func_pattern = re.compile(r'^\s*(?:function\s+(\w+)|const\s+(\w+)\s*=\s*(?:async\s+)?(?:\([^)]*\)|[^=])+\s*=>)', re.MULTILINE)
         for match in func_pattern.finditer(content):
             name = match.group(1) or match.group(2)
@@ -341,7 +308,6 @@ class ASTAnalyzer:
             'relationships': []
         }
 
-        # Extract imports
         import_pattern = re.compile(r'^\s*import\s+([\w.]+);', re.MULTILINE)
         for match in import_pattern.finditer(content):
             line_num = content[:match.start()].count('\n') + 1
@@ -351,7 +317,6 @@ class ASTAnalyzer:
                 'line': line_num
             })
 
-        # Extract classes
         class_pattern = re.compile(r'^\s*(?:public\s+)?(?:class|interface)\s+(\w+)(?:\s+extends\s+(\w+))?(?:\s+implements\s+([\w,\s]+))?', re.MULTILINE)
         for match in class_pattern.finditer(content):
             name = match.group(1)
@@ -385,7 +350,6 @@ class ASTAnalyzer:
 
             result['classes'].append(class_info)
 
-        # Extract methods
         method_pattern = re.compile(r'^\s*(?:public|private|protected)?\s*(?:static)?\s*(?:\w+)\s+(\w+)\s*\([^)]*\)', re.MULTILINE)
         for match in method_pattern.finditer(content):
             name = match.group(1)
@@ -410,7 +374,6 @@ class ASTAnalyzer:
             'relationships': []
         }
 
-        # Extract includes
         include_pattern = re.compile(r'^\s*#include\s+[<"]([^>"]+)[>"]', re.MULTILINE)
         for match in include_pattern.finditer(content):
             line_num = content[:match.start()].count('\n') + 1
@@ -420,7 +383,6 @@ class ASTAnalyzer:
                 'line': line_num
             })
 
-        # Extract classes
         class_pattern = re.compile(r'^\s*class\s+(\w+)(?:\s*:\s*(?:public|private|protected)\s+(\w+))?', re.MULTILINE)
         for match in class_pattern.finditer(content):
             name, parent = match.groups()
@@ -457,7 +419,6 @@ class ASTAnalyzer:
             'relationships': []
         }
 
-        # Extract imports
         import_pattern = re.compile(r'^\s*import\s+(?:"([^"]+)"|(\([^)]+\)))', re.MULTILINE)
         for match in import_pattern.finditer(content):
             line_num = content[:match.start()].count('\n') + 1
@@ -466,7 +427,6 @@ class ASTAnalyzer:
                 'line': line_num
             })
 
-        # Extract structs (Go's version of classes)
         struct_pattern = re.compile(r'^\s*type\s+(\w+)\s+struct', re.MULTILINE)
         for match in struct_pattern.finditer(content):
             name = match.group(1)
@@ -477,7 +437,6 @@ class ASTAnalyzer:
                 'line': line_num
             })
 
-        # Extract functions
         func_pattern = re.compile(r'^\s*func\s+(?:\(.*?\)\s+)?(\w+)\s*\(', re.MULTILINE)
         for match in func_pattern.finditer(content):
             name = match.group(1)
@@ -502,7 +461,6 @@ class ASTAnalyzer:
             'relationships': []
         }
 
-        # Extract use statements (imports)
         use_pattern = re.compile(r'^\s*use\s+([\w:]+)', re.MULTILINE)
         for match in use_pattern.finditer(content):
             line_num = content[:match.start()].count('\n') + 1
@@ -512,7 +470,6 @@ class ASTAnalyzer:
                 'line': line_num
             })
 
-        # Extract structs and enums
         struct_pattern = re.compile(r'^\s*(?:pub\s+)?(?:struct|enum)\s+(\w+)', re.MULTILINE)
         for match in struct_pattern.finditer(content):
             name = match.group(1)
@@ -523,7 +480,6 @@ class ASTAnalyzer:
                 'line': line_num
             })
 
-        # Extract functions
         func_pattern = re.compile(r'^\s*(?:pub\s+)?fn\s+(\w+)\s*\(', re.MULTILINE)
         for match in func_pattern.finditer(content):
             name = match.group(1)
@@ -552,7 +508,6 @@ class ASTAnalyzer:
         chunks = []
         lines = content.split('\n')
 
-        # Create chunks for each class
         for cls in analysis.get('classes', []):
             chunk = self._extract_chunk_lines(
                 lines,
@@ -568,7 +523,6 @@ class ASTAnalyzer:
                 'metadata': cls
             })
 
-        # Create chunks for each function
         for func in analysis.get('functions', []):
             chunk = self._extract_chunk_lines(
                 lines,
@@ -584,7 +538,6 @@ class ASTAnalyzer:
                 'metadata': func
             })
 
-        # If no chunks found, treat whole file as one chunk
         if not chunks:
             chunks.append({
                 'type': 'file',
@@ -623,7 +576,6 @@ class ASTAnalyzer:
         elif language in ('JavaScript', 'TypeScript', 'Java', 'C++', 'C', 'C#', 'Go', 'Rust'):
             return self._find_brace_block_end(lines, start)
         else:
-            # Default: next blank line or end of file
             for i in range(start + 1, len(lines)):
                 if not lines[i].strip():
                     return i

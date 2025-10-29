@@ -1,14 +1,3 @@
-"""
-feedback.py
-User feedback loop system for TechDocAgent Advanced.
-
-Provides:
-- Collect and store user feedback
-- Rating system for generated docs
-- User corrections and suggestions
-- Feedback analysis and learning
-"""
-
 from typing import Dict, List, Optional, Any
 from datetime import datetime
 from enum import Enum
@@ -190,7 +179,6 @@ class FeedbackManager:
             'insights': []
         }
 
-        # Add insights based on feedback
         avg_rating = summary.get('avg_rating')
         if avg_rating:
             if avg_rating < 3.0:
@@ -215,8 +203,7 @@ class FeedbackManager:
         Returns:
             List of common corrections
         """
-        # This would need more sophisticated text analysis
-        # For now, just return recent corrections
+
         cursor = self.memory_manager.conn.cursor()
 
         if doc_type:
@@ -259,18 +246,15 @@ class FeedbackManager:
         suggestions = []
         analysis = self.analyze_feedback()
 
-        # Based on ratings
         avg_rating = analysis['summary'].get('avg_rating')
         if avg_rating and avg_rating < 3.5:
             suggestions.append("Consider revising prompt templates for better documentation quality")
             suggestions.append("Review user corrections to identify common issues")
 
-        # Based on corrections
         corrections = self.get_common_corrections(limit=5)
         if len(corrections) > 3:
             suggestions.append("Multiple corrections detected - analyze patterns and update prompts")
 
-        # Based on error reports
         cursor = self.memory_manager.conn.cursor()
         cursor.execute("""
             SELECT COUNT(*) FROM feedback
@@ -308,7 +292,6 @@ class FeedbackManager:
         report.append("=" * 60)
         report.append("")
 
-        # Summary
         summary = analysis['summary']
         report.append("SUMMARY")
         report.append("-" * 60)
@@ -318,7 +301,6 @@ class FeedbackManager:
         report.append(f"Corrections: {summary.get('corrections_count', 0)}")
         report.append("")
 
-        # Insights
         if analysis['insights']:
             report.append("INSIGHTS")
             report.append("-" * 60)
@@ -326,7 +308,6 @@ class FeedbackManager:
                 report.append(f"- {insight}")
             report.append("")
 
-        # Recent Corrections
         if corrections:
             report.append("RECENT CORRECTIONS")
             report.append("-" * 60)
@@ -338,7 +319,6 @@ class FeedbackManager:
                     report.append(f"   Comment: {correction['comment'][:100]}...")
                 report.append("")
 
-        # Suggestions
         if suggestions:
             report.append("IMPROVEMENT SUGGESTIONS")
             report.append("-" * 60)
@@ -365,8 +345,7 @@ class FeedbackManager:
 
         if not corrections:
             return original_prompt
-
-        # Add a section to the prompt about common issues
+            
         enhancement = "\n\nIMPORTANT - Based on user feedback, please avoid these common issues:\n"
         for i, correction in enumerate(corrections[:5], 1):
             if correction.get('comment'):
@@ -390,7 +369,7 @@ class FeedbackManager:
         print("=" * 60)
         print("\nGenerated Documentation:")
         print("-" * 60)
-        print(doc_content[:500])  # Show preview
+        print(doc_content[:500])
         if len(doc_content) > 500:
             print(f"... ({len(doc_content) - 500} more characters)")
         print("-" * 60)
@@ -403,8 +382,6 @@ class FeedbackManager:
             'suggestions': []
         }
 
-        # This is a placeholder for interactive feedback
-        # In a real implementation, this would use input() or a UI
         print("\nFeedback collected successfully!")
 
         return feedback_data

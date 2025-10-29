@@ -1,14 +1,3 @@
-"""
-embeddings.py
-Embedding generation and vector search for TechDocAgent Advanced.
-
-Provides:
-- Generate embeddings for code chunks using Gemini
-- Store embeddings in FAISS vector database
-- Semantic search and retrieval
-- Similarity-based code lookup
-"""
-
 import os
 import pickle
 import numpy as np
@@ -52,11 +41,10 @@ class EmbeddingManager:
         self.index_path.mkdir(exist_ok=True)
 
         self.embedding_model = "models/embedding-001"
-        self.dimension = 768  # Gemini embedding dimension
+        self.dimension = 768 
 
-        # FAISS index and metadata
         self.index = None
-        self.chunks = []  # Store chunk metadata
+        self.chunks = [] 
         self.chunk_embeddings = []
 
         self._load_or_create_index()
@@ -83,7 +71,6 @@ class EmbeddingManager:
     def _create_new_index(self):
         """Create a new FAISS index."""
         if FAISS_AVAILABLE:
-            # Use IndexFlatL2 for exact search (can be upgraded to IndexIVFFlat for larger datasets)
             self.index = faiss.IndexFlatL2(self.dimension)
             print("Created new FAISS index")
         else:
@@ -154,15 +141,13 @@ class EmbeddingManager:
         Returns:
             True if successful, False otherwise
         """
-        # Create a text representation of the chunk for embedding
+
         chunk_text = self._create_chunk_text(chunk, file_path, language)
 
-        # Generate embedding
         embedding = self.generate_embedding(chunk_text)
         if embedding is None:
             return False
 
-        # Store metadata
         chunk_metadata = {
             'file_path': file_path,
             'language': language,
@@ -170,14 +155,13 @@ class EmbeddingManager:
             'name': chunk.get('name'),
             'start_line': chunk.get('start_line'),
             'end_line': chunk.get('end_line'),
-            'code': chunk.get('code', '')[:500],  # Store first 500 chars for reference
+            'code': chunk.get('code', '')[:500],
             'full_code': chunk.get('code', ''),
         }
 
         self.chunks.append(chunk_metadata)
         self.chunk_embeddings.append(embedding)
 
-        # Add to FAISS index
         if FAISS_AVAILABLE and self.index is not None:
             self.index.add(embedding.reshape(1, -1))
 
@@ -203,7 +187,6 @@ class EmbeddingManager:
         parts.append(f"Type: {chunk.get('type', 'unknown')}")
         parts.append(f"File: {Path(file_path).name}")
 
-        # Add the actual code
         code = chunk.get('code', '')
         if code:
             parts.append(f"Code:\n{code}")
@@ -226,24 +209,22 @@ class EmbeddingManager:
 
         query_embedding = self.generate_query_embedding(query)
         if query_embedding is None:
-            # Fallback to simple keyword search
+
             return self._keyword_search(query, top_k)
 
         if FAISS_AVAILABLE and self.index is not None and self.index.ntotal > 0:
-            # FAISS search
+            
             top_k = min(top_k, self.index.ntotal)
             distances, indices = self.index.search(query_embedding.reshape(1, -1), top_k)
 
             results = []
             for idx, dist in zip(indices[0], distances[0]):
                 if idx < len(self.chunks):
-                    # Convert distance to similarity score (lower distance = higher similarity)
                     similarity = 1 / (1 + dist)
                     results.append((self.chunks[idx], float(similarity)))
 
             return results
         else:
-            # Manual similarity computation
             return self._manual_search(query_embedding, top_k)
 
     def _manual_search(self, query_embedding: np.ndarray, top_k: int) -> List[Tuple[Dict, float]]:
@@ -253,13 +234,12 @@ class EmbeddingManager:
 
         similarities = []
         for idx, chunk_emb in enumerate(self.chunk_embeddings):
-            # Cosine similarity
+
             similarity = np.dot(query_embedding, chunk_emb) / (
                 np.linalg.norm(query_embedding) * np.linalg.norm(chunk_emb)
             )
             similarities.append((idx, float(similarity)))
 
-        # Sort by similarity (descending)
         similarities.sort(key=lambda x: x[1], reverse=True)
 
         results = []
@@ -275,7 +255,7 @@ class EmbeddingManager:
 
         for chunk in self.chunks:
             score = 0.0
-            # Simple keyword matching
+
             if query_lower in chunk.get('full_code', '').lower():
                 score += 1.0
             if chunk.get('name') and query_lower in chunk['name'].lower():
@@ -327,7 +307,7 @@ class EmbeddingManager:
         Returns:
             List of (chunk_metadata, similarity_score) tuples
         """
-        # Find the target chunk
+
         target_chunk = None
         for chunk in self.chunks:
             if chunk['file_path'] == file_path and chunk['name'] == chunk_name:
@@ -337,9 +317,8 @@ class EmbeddingManager:
         if not target_chunk:
             return []
 
-        # Use the chunk's code as query
         query = target_chunk.get('full_code', '')
-        return self.search(query, top_k + 1)[1:]  # Exclude the chunk itself
+        return self.search(query, top_k + 1)[1:]
 
     def save(self):
         """Persist the index and metadata to disk."""
@@ -369,7 +348,6 @@ class EmbeddingManager:
             'index_size': self.index.ntotal if FAISS_AVAILABLE and self.index else 0,
         }
 
-        # Count by language
         languages = {}
         for chunk in self.chunks:
             lang = chunk.get('language', 'Unknown')
@@ -377,7 +355,6 @@ class EmbeddingManager:
 
         stats['languages'] = languages
 
-        # Count by type
         types = {}
         for chunk in self.chunks:
             chunk_type = chunk.get('chunk_type', 'unknown')

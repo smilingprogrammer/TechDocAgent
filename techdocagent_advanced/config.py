@@ -1,15 +1,3 @@
-"""
-config.py
-Configuration management system for TechDocAgent Advanced.
-
-Provides:
-- Configuration loading from files (YAML, JSON, TOML)
-- Environment variable support
-- Template customization
-- Output format settings
-- Agent behavior configuration
-"""
-
 import os
 import json
 from pathlib import Path
@@ -21,18 +9,15 @@ from dataclasses import dataclass, asdict, field
 class AgentConfig:
     """Main configuration for TechDocAgent Advanced."""
 
-    # API Configuration
     gemini_api_key: str = ""
     embedding_model: str = "models/embedding-001"
     generation_model: str = "gemini-pro"
 
-    # Paths
     project_root: str = "."
     output_dir: str = "./docs"
     memory_db_path: str = ".techdoc_memory.db"
     embeddings_path: str = ".techdoc_embeddings"
 
-    # Ingestion Settings
     code_extensions: List[str] = field(default_factory=lambda: [
         '.py', '.js', '.ts', '.java', '.c', '.cpp', '.cs', '.go',
         '.rb', '.php', '.rs', '.swift', '.kt', '.m', '.scala'
@@ -43,48 +28,39 @@ class AgentConfig:
     ])
     respect_gitignore: bool = True
 
-    # Documentation Settings
     doc_types: List[str] = field(default_factory=lambda: [
         'README', 'API', 'ONBOARDING', 'CHANGELOG', 'ARCHITECTURE'
     ])
     default_doc_type: str = 'README'
     auto_save: bool = True
-    output_format: str = 'markdown'  # markdown, html, pdf
+    output_format: str = 'markdown'
 
-    # Analysis Settings
     use_ast_analysis: bool = True
     use_embeddings: bool = True
-    max_chunk_size: int = 1000  # lines
-    min_chunk_size: int = 10    # lines
+    max_chunk_size: int = 1000
+    min_chunk_size: int = 10
 
-    # Change Detection
     enable_change_detection: bool = True
     use_git_tracking: bool = True
     incremental_updates: bool = True
 
-    # Feedback
     enable_feedback: bool = True
     auto_apply_corrections: bool = False
 
-    # LLM Settings
     temperature: float = 0.7
     max_tokens: int = 8000
     top_p: float = 0.95
     top_k: int = 40
 
-    # Performance
     batch_size: int = 10
     parallel_processing: bool = True
     max_workers: int = 4
 
-    # Logging
     log_level: str = "INFO"
     log_file: Optional[str] = None
 
-    # Custom Templates
     custom_templates_dir: Optional[str] = None
 
-    # Features
     features: Dict[str, bool] = field(default_factory=lambda: {
         'embeddings': True,
         'change_detection': True,
@@ -100,7 +76,7 @@ class AgentConfig:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'AgentConfig':
         """Create config from dictionary."""
-        # Filter out unknown keys
+
         valid_keys = cls.__dataclass_fields__.keys()
         filtered_data = {k: v for k, v in data.items() if k in valid_keys}
         return cls(**filtered_data)
@@ -114,24 +90,19 @@ class AgentConfig:
         """
         errors = []
 
-        # Check API key if features that need it are enabled
         if self.features.get('embeddings', True) and not self.gemini_api_key:
             if not os.getenv('GEMINI_API_KEY'):
                 errors.append("Gemini API key not configured and embeddings are enabled")
 
-        # Check paths
         if not os.path.exists(self.project_root):
             errors.append(f"Project root does not exist: {self.project_root}")
 
-        # Check temperature range
         if not 0.0 <= self.temperature <= 1.0:
             errors.append(f"Temperature must be between 0.0 and 1.0, got {self.temperature}")
 
-        # Check max_tokens
         if self.max_tokens < 100:
             errors.append(f"max_tokens too small: {self.max_tokens}")
 
-        # Check chunk sizes
         if self.min_chunk_size >= self.max_chunk_size:
             errors.append("min_chunk_size must be less than max_chunk_size")
 
@@ -209,7 +180,7 @@ class ConfigManager:
                     return self.config
 
             self.config = AgentConfig.from_dict(data)
-            self._load_from_env()  # Override with env vars
+            self._load_from_env() 
 
             print(f"Loaded configuration from {path}")
 
@@ -220,7 +191,7 @@ class ConfigManager:
 
     def _load_from_env(self):
         """Load configuration from environment variables."""
-        # Override with environment variables
+
         if os.getenv('GEMINI_API_KEY'):
             self.config.gemini_api_key = os.getenv('GEMINI_API_KEY')
 
@@ -336,7 +307,6 @@ class ConfigManager:
 
         config_dict = self.config.to_dict()
 
-        # Hide sensitive data
         if config_dict.get('gemini_api_key'):
             config_dict['gemini_api_key'] = '***' + config_dict['gemini_api_key'][-4:]
 

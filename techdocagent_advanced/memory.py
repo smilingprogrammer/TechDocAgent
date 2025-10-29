@@ -1,14 +1,3 @@
-"""
-memory.py
-Memory management system for TechDocAgent Advanced.
-
-Provides:
-- Persistent storage of codebase summaries and metadata
-- User feedback storage and retrieval
-- Change tracking with file hashes
-- Session context management
-"""
-
 import json
 import hashlib
 import sqlite3
@@ -44,7 +33,6 @@ class MemoryManager:
         """Create database tables if they don't exist."""
         cursor = self.conn.cursor()
 
-        # Files table: track file metadata and hashes
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS files (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -56,7 +44,6 @@ class MemoryManager:
             )
         """)
 
-        # Documentation table: track generated documentation
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS documentation (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -69,7 +56,6 @@ class MemoryManager:
             )
         """)
 
-        # Feedback table: store user feedback
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS feedback (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -83,7 +69,6 @@ class MemoryManager:
             )
         """)
 
-        # Sessions table: track analysis sessions
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS sessions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -94,7 +79,6 @@ class MemoryManager:
             )
         """)
 
-        # Changes table: track codebase changes
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS changes (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -400,7 +384,6 @@ class MemoryManager:
         """
         cursor = self.conn.cursor()
 
-        # Keep recent documentation and feedback, but archive old changes
         cursor.execute("""
             DELETE FROM changes
             WHERE detected_at < datetime('now', '-' || ? || ' days')

@@ -1,22 +1,9 @@
-"""
-agent.py
-Main TechDocAgent Advanced orchestrator.
-
-Coordinates all components to provide advanced documentation generation with:
-- Memory and contextual awareness
-- Embeddings and semantic search
-- Change detection and incremental updates
-- Multi-format documentation
-- Feedback loop
-"""
-
 import os
 import uuid
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime
 
-# Import from existing techdocagent (basic functionality)
 import sys
 sys.path.append(str(Path(__file__).parent.parent))
 
@@ -31,7 +18,6 @@ except ImportError:
     analyze_file = None
     basic_generate = None
 
-# Import advanced components
 from .memory import MemoryManager
 from .embeddings import EmbeddingManager
 from .change_detector import ChangeDetector
@@ -66,18 +52,15 @@ class TechDocAgent:
             config_manager = ConfigManager(config_path)
             self.config = config_manager.config
 
-        # Validate config
         errors = self.config.validate()
         if errors:
             print("Warning: Configuration has errors:")
             for error in errors:
                 print(f"  - {error}")
 
-        # Initialize API
         if self.config.gemini_api_key:
             genai.configure(api_key=self.config.gemini_api_key)
 
-        # Initialize components
         self.memory = MemoryManager(self.config.memory_db_path)
         self.embeddings = EmbeddingManager(
             api_key=self.config.gemini_api_key,
@@ -93,7 +76,6 @@ class TechDocAgent:
 
         self.ast_analyzer = ASTAnalyzer() if self.config.features.get('ast_analysis', True) else None
 
-        # Session management
         self.session_id = str(uuid.uuid4())
         self.memory.create_session(self.session_id, {'started_at': str(datetime.now())})
 
@@ -113,16 +95,13 @@ class TechDocAgent:
         root_path = root_path or self.config.project_root
         print(f"\nAnalyzing codebase: {root_path}")
 
-        # Ingest codebase
         if ingest_codebase:
             code_files = ingest_codebase(root_path)
         else:
-            # Fallback ingestion
             code_files = self._fallback_ingest(root_path)
 
         print(f"Found {len(code_files)} code files")
 
-        # Detect changes
         changes = []
         if self.change_detector and not force_reanalyze:
             changes = self.change_detector.get_all_changes(code_files)
@@ -131,36 +110,28 @@ class TechDocAgent:
             else:
                 print("No changes detected since last analysis")
 
-        # Analyze files
         analyzed_count = 0
         new_chunks_count = 0
 
         for file_path in code_files:
-            # Skip if no changes and not forcing
             if not force_reanalyze and changes:
                 if not any(c['file_path'] == file_path for c in changes):
                     continue
 
             try:
-                # Read file
                 with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
                     content = f.read()
 
-                # Detect language
                 language = detect_language(file_path) if detect_language else self._fallback_detect_language(file_path)
 
-                # Analyze with AST if available
                 if self.ast_analyzer:
                     chunks = self.ast_analyzer.extract_chunks(file_path, content, language)
                 else:
-                    # Fallback chunking
                     chunks = self._fallback_chunk(content, language)
 
-                # Store in memory
                 metadata = analyze_file(file_path) if analyze_file else {}
                 self.memory.store_file_metadata(file_path, content, language, metadata)
 
-                # Generate embeddings
                 if self.embeddings:
                     for chunk in chunks:
                         self.embeddings.add_chunk(chunk, file_path, language)
@@ -174,7 +145,6 @@ class TechDocAgent:
             except Exception as e:
                 print(f"Error analyzing {file_path}: {e}")
 
-        # Save embeddings
         if self.embeddings:
             self.embeddings.save()
 
@@ -209,29 +179,22 @@ class TechDocAgent:
         """
         print(f"\nGenerating {doc_type} documentation...")
 
-        # Get template
         template = DocTemplates.get_template(doc_type)
         if not template:
             raise ValueError(f"Unknown documentation type: {doc_type}")
 
-        # Gather context
         context = self._gather_context(doc_type, custom_context)
 
-        # Apply feedback improvements if available
         if self.feedback:
             template = self.feedback.apply_corrections_to_prompt(doc_type, template)
 
-        # Fill template
         filled_prompt = DocTemplates.fill_template(template, context)
 
-        # Generate with LLM
         print("  Calling LLM...")
         documentation = self._call_llm(filled_prompt)
 
-        # Post-process
         documentation = self._post_process_documentation(documentation, doc_type)
 
-        # Store in memory
         version_hash = self.change_detector.get_last_commit_hash() if self.change_detector else None
         doc_id = self.memory.store_documentation(
             doc_type=doc_type,
@@ -242,7 +205,6 @@ class TechDocAgent:
 
         print(f"  Documentation generated (ID: {doc_id})")
 
-        # Save to file
         if output_path or self.config.auto_save:
             save_path = output_path or self._get_default_output_path(doc_type)
             self._save_documentation(documentation, save_path)
@@ -263,7 +225,6 @@ class TechDocAgent:
         """
         print(f"\nUpdating {doc_type} documentation...")
 
-        # Check for changes
         if not self.change_detector:
             print("Change detection not available. Generating new documentation.")
             return self.generate_documentation(doc_type, output_path)
@@ -278,30 +239,23 @@ class TechDocAgent:
 
         print(f"  Found {len(changes)} changed files")
 
-        # Check if update is needed
         if not self.change_detector.should_update_documentation(doc_type, changes):
             print("  Changes don't require documentation update")
             latest_doc = self.memory.get_latest_documentation(doc_type)
             return latest_doc['content'] if latest_doc else ""
 
-        # Get existing documentation
         existing_doc = self.memory.get_latest_documentation(doc_type)
 
-        # Generate updated documentation with change context
         context = self._gather_context(doc_type, {'changes': changes, 'existing_doc': existing_doc})
 
-        # Use update-specific template
         template = self._get_update_template(doc_type)
         filled_prompt = DocTemplates.fill_template(template, context)
 
-        # Generate with LLM
         print("  Generating update...")
         updated_doc = self._call_llm(filled_prompt)
 
-        # Post-process
         updated_doc = self._post_process_documentation(updated_doc, doc_type)
 
-        # Store
         version_hash = self.change_detector.get_last_commit_hash()
         doc_id = self.memory.store_documentation(
             doc_type=doc_type,
@@ -312,7 +266,6 @@ class TechDocAgent:
 
         print(f"  Documentation updated (ID: {doc_id})")
 
-        # Save
         if output_path or self.config.auto_save:
             save_path = output_path or self._get_default_output_path(doc_type)
             self._save_documentation(updated_doc, save_path)
@@ -398,11 +351,9 @@ class TechDocAgent:
         """Gather context for documentation generation."""
         context = custom_context or {}
 
-        # Basic project info
         context['project_root'] = self.config.project_root
         context['project_name'] = Path(self.config.project_root).name
 
-        # Get relevant code using embeddings
         if self.embeddings and len(self.embeddings) > 0:
             query = f"main functionality for {doc_type} documentation"
             relevant_chunks = self.embeddings.search(query, top_k=10)
@@ -410,16 +361,12 @@ class TechDocAgent:
             context['key_components'] = self._format_chunks(relevant_chunks[:5])
             context['sample_code'] = self._format_code_samples(relevant_chunks[:3])
 
-        # Codebase structure
         context['codebase_structure'] = self._get_structure_summary()
 
-        # Language statistics
         context['primary_language'] = self._get_primary_language()
 
-        # File counts
         context['file_count'] = len(self.memory.get_all_file_paths())
 
-        # Fill in any missing required fields with defaults
         context.setdefault('total_lines', 'Unknown')
         context.setdefault('tech_stack', 'To be determined')
         context.setdefault('complexity_level', 'Medium')
@@ -451,14 +398,13 @@ class TechDocAgent:
 
     def _post_process_documentation(self, content: str, doc_type: str) -> str:
         """Post-process generated documentation."""
-        # Remove any potential API keys or secrets (basic check)
+
         import re
 
-        # Remove common secret patterns
         patterns = [
-            r'sk-[a-zA-Z0-9]{48}',  # OpenAI-style keys
-            r'AIza[a-zA-Z0-9_-]{35}',  # Google API keys
-            r'[a-zA-Z0-9]{32,}',  # Long hex strings (potential keys)
+            r'sk-[a-zA-Z0-9]{48}', 
+            r'AIza[a-zA-Z0-9_-]{35}',
+            r'[a-zA-Z0-9]{32,}',
         ]
 
         for pattern in patterns:
@@ -534,12 +480,11 @@ Please update the documentation to reflect these changes while preserving the ov
 
     def _get_structure_summary(self) -> str:
         """Get codebase structure summary."""
-        # Placeholder - would analyze directory structure
+
         return "Project structure includes main source files and configuration"
 
     def _get_primary_language(self) -> str:
         """Get primary programming language."""
-        # Simple heuristic - count files by language
         if self.embeddings and hasattr(self.embeddings, 'chunks'):
             langs = {}
             for chunk in self.embeddings.chunks:
@@ -571,7 +516,7 @@ Please update the documentation to reflect these changes while preserving the ov
             'name': 'full_file',
             'start_line': 1,
             'end_line': len(content.split('\n')),
-            'code': content[:1000]  # First 1000 chars
+            'code': content[:1000]
         }]
 
     def close(self):

@@ -1,16 +1,3 @@
-"""
-doc_templates.py
-Multi-format documentation templates for TechDocAgent Advanced.
-
-Provides templates for:
-- README
-- API Documentation
-- Onboarding Guides
-- Changelog
-- Architecture Documentation
-- Per-module/class/function docs
-"""
-
 from typing import Dict, List, Optional, Any
 
 

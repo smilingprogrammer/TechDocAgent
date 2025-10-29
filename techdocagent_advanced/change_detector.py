@@ -1,14 +1,3 @@
-"""
-change_detector.py
-Change detection and incremental update system for TechDocAgent Advanced.
-
-Provides:
-- Detect changes in codebase using git diff or file hashes
-- Identify affected code chunks and documentation
-- Track dependencies between files
-- Support incremental documentation updates
-"""
-
 import os
 import subprocess
 from pathlib import Path
@@ -58,11 +47,9 @@ class ChangeDetector:
             return []
 
         try:
-            # Get changed files
             if since_commit:
                 cmd = ["git", "diff", "--name-status", since_commit]
             else:
-                # Check uncommitted changes
                 cmd = ["git", "status", "--porcelain"]
 
             result = subprocess.run(
@@ -79,7 +66,6 @@ class ChangeDetector:
                     continue
 
                 if since_commit:
-                    # Format: M\tfile.py
                     parts = line.split('\t')
                     if len(parts) >= 2:
                         status, file_path = parts[0], parts[1]
@@ -89,7 +75,6 @@ class ChangeDetector:
                             'change_type': change_type
                         })
                 else:
-                    # Format: M file.py or ?? file.py
                     parts = line.split(maxsplit=1)
                     if len(parts) >= 2:
                         status, file_path = parts[0], parts[1]
@@ -142,12 +127,10 @@ class ChangeDetector:
 
         changes = []
 
-        # Check tracked files
         tracked_files = set(self.memory_manager.get_all_file_paths())
 
         for file_path in file_paths:
             if not os.path.exists(file_path):
-                # File was deleted
                 if file_path in tracked_files:
                     changes.append({
                         'file_path': file_path,
@@ -155,7 +138,6 @@ class ChangeDetector:
                     })
                 continue
 
-            # Read current content
             try:
                 with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
                     content = f.read()
@@ -163,7 +145,6 @@ class ChangeDetector:
                 print(f"Error reading {file_path}: {e}")
                 continue
 
-            # Check if changed
             if self.memory_manager.has_file_changed(file_path, content):
                 if file_path in tracked_files:
                     change_type = 'modified'
@@ -175,7 +156,6 @@ class ChangeDetector:
                     'change_type': change_type
                 })
 
-        # Check for deleted files
         current_files = set(file_paths)
         for tracked_file in tracked_files:
             if tracked_file not in current_files:
@@ -199,13 +179,11 @@ class ChangeDetector:
         """
         changes_map = {}
 
-        # Try git first
         if self.is_git_repo:
             git_changes = self.get_changed_files_git(since_commit)
             for change in git_changes:
                 changes_map[change['file_path']] = change
 
-        # Fall back to hash comparison for any files not detected by git
         if self.memory_manager:
             hash_changes = self.get_changed_files_hash(file_paths)
             for change in hash_changes:
@@ -231,7 +209,6 @@ class ChangeDetector:
         for chunk in all_chunks:
             chunk_file = chunk.get('file_path', '')
             if chunk_file in changed_paths:
-                # Create a unique identifier for the chunk
                 chunk_id = f"{chunk_file}:{chunk.get('name', 'unknown')}:{chunk.get('start_line', 0)}"
                 affected_chunks.add(chunk_id)
 
@@ -259,10 +236,8 @@ class ChangeDetector:
         except Exception:
             return dependencies
 
-        # Extract potential imports/includes
         import_patterns = self._extract_imports(content, file_path)
 
-        # Match imports to actual files
         for pattern in import_patterns:
             for other_file in all_files:
                 if pattern in other_file or Path(other_file).stem == pattern:
@@ -287,36 +262,28 @@ class ChangeDetector:
         lines = content.split('\n')
 
         if ext == '.py':
-            # Python imports
             import re
             for line in lines:
-                # from X import Y
                 match = re.match(r'^\s*from\s+(\S+)\s+import', line)
                 if match:
                     imports.append(match.group(1))
-                # import X
                 match = re.match(r'^\s*import\s+(\S+)', line)
                 if match:
                     imports.append(match.group(1).split('.')[0])
 
         elif ext in ('.js', '.ts'):
-            # JavaScript/TypeScript imports
             import re
             for line in lines:
-                # import X from 'Y'
                 match = re.search(r"from\s+['\"](.+?)['\"]", line)
                 if match:
                     imports.append(match.group(1))
-                # require('Y')
                 match = re.search(r"require\(['\"](.+?)['\"]\)", line)
                 if match:
                     imports.append(match.group(1))
 
         elif ext in ('.java', '.cpp', '.c', '.cs'):
-            # Java, C++, C, C# imports
             import re
             for line in lines:
-                # import/using/include statements
                 match = re.search(r'^\s*(?:import|using|#include)\s+[<"]?(.+?)[>"]?;?$', line)
                 if match:
                     imports.append(match.group(1))
@@ -341,21 +308,17 @@ class ChangeDetector:
             'high_impact_files': []
         }
 
-        # Count change types
         for change in changed_files:
             change_type = change['change_type']
             impact['change_types'][change_type] = impact['change_types'].get(change_type, 0) + 1
 
-        # Find affected files through dependencies
         for change in changed_files:
             file_path = change['file_path']
             impact['affected_files'].add(file_path)
 
-            # Find dependencies
             deps = self.find_dependencies(file_path, all_files)
             impact['affected_files'].update(deps)
 
-            # Mark high-impact files (those with many dependencies)
             if len(deps) > 5:
                 impact['high_impact_files'].append({
                     'file': file_path,
@@ -445,7 +408,6 @@ class ChangeDetector:
         if not changed_files:
             return False
 
-        # Always update for code changes
         code_extensions = {'.py', '.js', '.ts', '.java', '.cpp', '.c', '.go', '.rs'}
 
         for change in changed_files:
@@ -453,7 +415,6 @@ class ChangeDetector:
             if ext in code_extensions:
                 return True
 
-        # Update README if project structure changed
         if doc_type == 'README':
             for change in changed_files:
                 file_name = Path(change['file_path']).name.lower()
