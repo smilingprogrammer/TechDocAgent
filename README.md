@@ -9,13 +9,13 @@
 
 **AI-powered technical documentation generation for codebases**
 
-[Features](#-features) • [Installation](#-installation) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Examples](#-examples)
+[Features](#-features) • [Installation](#-installation) • [Quick Start](#-quick-start) • [Documentation](#-documentation-types-supported) • [Examples](#-examples)
 
 </div>
 
 ---
 
-## 📖 Overview
+## Overview
 
 TechDocAgent is an intelligent documentation generation system that automatically creates comprehensive technical documentation from your codebase. Powered by Google's Gemini AI and advanced code analysis techniques, it transforms source code into human-readable documentation with minimal effort.
 
@@ -26,7 +26,7 @@ The project offers **two implementations**:
 
 ---
 
-## ✨ Features
+## Features
 
 | Feature | Description |
 |---------|-------------|
@@ -40,7 +40,7 @@ The project offers **two implementations**:
 
 ---
 
-## 🚀 Installation
+## Installation
 
 ### Prerequisites
 
@@ -76,7 +76,7 @@ pip install -e ".[dev,cli]"
 
 ---
 
-## ⚡ Quick Start
+## Quick Start
 
 ### Basic Usage
 
@@ -137,21 +137,19 @@ techdoc-advanced stats
 
 ---
 
-## 📚 Documentation
+## Documentation Types Supported
 
-### Documentation Types Supported
-
-| Type | Description | Version |
-|------|-------------|---------|
-| **README** | Comprehensive project documentation | Both |
-| **API** | API reference with endpoints and examples | Advanced |
-| **ONBOARDING** | Developer onboarding and setup guides | Advanced |
-| **CHANGELOG** | Automated changelog from git history | Advanced |
-| **ARCHITECTURE** | System architecture and design docs | Advanced |
-| **MODULE** | Per-module/file documentation | Advanced |
-| **FUNCTION** | Function-level detailed documentation | Advanced |
-| **TEST** | Test suite documentation | Advanced |
-| **DEPLOYMENT** | Deployment and operations guides | Advanced |
+| Type | Description |
+|------|-------------|
+| **README** | Comprehensive project documentation |
+| **API** | API reference with endpoints and examples |
+| **ONBOARDING** | Developer onboarding and setup guides |
+| **CHANGELOG** | Automated changelog from git history |
+| **ARCHITECTURE** | System architecture and design docs |
+| **MODULE** | Per-module/file documentation |
+| **FUNCTION** | Function-level detailed documentation |
+| **TEST** | Test suite documentation |
+| **DEPLOYMENT** | Deployment and operations guides |
 
 ### Configuration
 
@@ -240,34 +238,7 @@ with TechDocAgent() as agent:
             print(f"  - {chunk['name']} (similarity: {score:.2f})")
 ```
 
-### Example 4: Feedback Collection
-
-```python
-from techdocagent_advanced import TechDocAgent
-
-with TechDocAgent() as agent:
-    agent.analyze_codebase()
-    agent.generate_documentation('README')
-
-    # Collect user feedback
-    agent.collect_feedback(
-        doc_id=1,
-        rating=4,
-        comment="Good docs, but needs more examples"
-    )
-
-    # Submit corrections
-    agent.collect_feedback(
-        doc_id=1,
-        correction="The installation section should mention Python 3.8+"
-    )
-
-    # View feedback report
-    report = agent.get_feedback_report()
-    print(report)
-```
-
-You can find more examples [here]()
+You can find more examples [here](https://github.com/smilingprogrammer/TechDocAgent/blob/main/EXAMPLES.md)
 
 ## 🗺️ Roadmap
 
@@ -295,6 +266,6 @@ You can find more examples [here]()
 
 <div align="center">
 
-⭐ Star us it GitHub — it motivates me a lot!
+⭐ Star it GitHub — it motivates me a lot!
 
 </div>

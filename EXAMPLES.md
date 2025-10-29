@@ -1,5 +1,5 @@
 
-## 🔧 Advanced Features Deep Dive
+## Advanced Features And It Examples (Will Still Add more Usage Examples)
 
 ### Memory System
 
@@ -63,4 +63,31 @@ impact = detector.calculate_change_impact(changes, all_files)
 
 # Determine if docs need update
 should_update = detector.should_update_documentation('README', changes)
+```
+
+### Feedback Collection
+
+```python
+from techdocagent_advanced import TechDocAgent
+
+with TechDocAgent() as agent:
+    agent.analyze_codebase()
+    agent.generate_documentation('README')
+
+    # Collect user feedback
+    agent.collect_feedback(
+        doc_id=1,
+        rating=4,
+        comment="Good docs, but needs more examples"
+    )
+
+    # Submit corrections
+    agent.collect_feedback(
+        doc_id=1,
+        correction="The installation section should mention Python 3.8+"
+    )
+
+    # View feedback report
+    report = agent.get_feedback_report()
+    print(report)
 ```
